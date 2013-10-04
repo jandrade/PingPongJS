@@ -1,0 +1,9 @@
+# taken from http://blog.illuminex.com/2009/10/better-sample-gitignore-file-for-xcode.html
+
+# Mac OS X Finder and whatnot
+.DS_Store
+.project
+.settings/
+
+
+server/node_modules
