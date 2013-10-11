@@ -59,9 +59,23 @@ textarea {
 /* ==========================================================================
    Author's custom styles
    ========================================================================== */
+html,
+body {
+    font-family: 'Titillium Web', sans-serif;
+    height: 100%;
+}
 
+aside {
+    background-color: #eee;
+    display: inline-block;
+    padding: 2%;
+    height: 100%;
+}
 
-
+h1 {
+    font-size: 1.8em;
+    text-align: center;
+}
 
 
 
