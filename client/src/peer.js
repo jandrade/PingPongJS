@@ -3,7 +3,7 @@
  * @author Juan Andrade <juandavidandrade@gmail.com>
  */
 
-(function (ppjs) {
+(function(ppjs) {
 	'use strict';
 
 	/**
@@ -17,93 +17,98 @@
 		 * Peer identifier
 		 */
 		var id,
-		/**
-		 * RTC connection
-		 * @type {RTCPeerConnection}
-		 */
+			/**
+			 * RTC connection
+			 * @type {RTCPeerConnection}
+			 */
 			peerConnection,
-		/**
-		 * RTC Data Channel
-		 * @type {RTCDataChannel}
-		 */
+			/**
+			 * RTC Data Channel
+			 * @type {RTCDataChannel}
+			 */
 			channel,
-		/**
-		 * RTC connection
-		 * @type {RTCPeerConnection}
-		 */
+			/**
+			 * RTC connection
+			 * @type {RTCPeerConnection}
+			 */
 			signalingChannel,
-		/**
-		 * Peer connection completed
-		 * @type {Boolean}
-		 */
+			/**
+			 * Peer connection completed
+			 * @type {Boolean}
+			 */
 			isConnected = false,
-		/**
-		 * Is current peer the initiator?
-		 * @type {Boolean}
-		 */
+			/**
+			 * Is current peer the initiator?
+			 * @type {Boolean}
+			 */
 			isInitiator = false,
-		/**
-		 * List of servers
-		 * @type {Enum}
-		 */
+			/**
+			 * List of servers
+			 * @type {Enum}
+			 */
 			servers = {
-			    iceServers: [
-					{ url: 'stun:stun.l.google.com:19302'},
-					{ url: "turn:numb.viagenie.ca", credential: "tsp2004", username: "juandavidandrade@gmail.com"},
-					{
-						credential: "w6TvvngkVZh77jIdMFKUVl4GBv0=",
-						url: "turn:8.35.196.131:3478?transport=udp",
-						username: "66688435:1380233238"
-					},
-					{
-						credential: "w6TvvngkVZh77jIdMFKUVl4GBv0=",
-						url: "turn:8.35.196.131:3478?transport=tcp",
-						username: "66688435:1380233238"
-					},
-					{
-						credential: "w6TvvngkVZh77jIdMFKUVl4GBv0=",
-						url: "turn:8.35.196.131:3479?transport=udp",
-						username: "66688435:1380233238"
-					},
-					{
-						credential: "w6TvvngkVZh77jIdMFKUVl4GBv0=",
-						url: "turn:8.35.196.131:3479?transport=tcp",
-						username: "66688435:1380233238"
+				iceServers: [{
+						url: 'stun:stun.l.google.com:19302'
 					}
-			    ]
+					/*, {
+					url: "turn:numb.viagenie.ca",
+					credential: "tsp2004",
+					username: "juandavidandrade@gmail.com"
+				}, {
+					credential: "w6TvvngkVZh77jIdMFKUVl4GBv0=",
+					url: "turn:8.35.196.131:3478?transport=udp",
+					username: "66688435:1380233238"
+				}, {
+					credential: "w6TvvngkVZh77jIdMFKUVl4GBv0=",
+					url: "turn:8.35.196.131:3478?transport=tcp",
+					username: "66688435:1380233238"
+				}, {
+					credential: "w6TvvngkVZh77jIdMFKUVl4GBv0=",
+					url: "turn:8.35.196.131:3479?transport=udp",
+					username: "66688435:1380233238"
+				}, {
+					credential: "w6TvvngkVZh77jIdMFKUVl4GBv0=",
+					url: "turn:8.35.196.131:3479?transport=tcp",
+					username: "66688435:1380233238"
+				}*/
+				]
 			},
-		/**
-		 * Optional parameters
-		 * @type {Enum}
-		 */
+			/**
+			 * Optional parameters
+			 * @type {Enum}
+			 */
 			peerOptions = {
-				optional: [
-			        {DtlsSrtpKeyAgreement: true}, // chrome/moz interop
-			        {RtpDataChannels: true}
-			    ]
+				optional: [{
+						DtlsSrtpKeyAgreement: true
+					}, // chrome/moz interop
+					{
+						RtpDataChannels: true
+					}
+				]
 			},
-		/**
-		 * Offer Options
-		 * @type {Object}
-		 */
+			/**
+			 * Offer Options
+			 * @type {Object}
+			 */
 			mediaConstraints = {
 				optional: [],
-			    mandatory: {
-			    	OfferToReceiveAudio: (options && options.audio),
-			        OfferToReceiveVideo: (options && options.video)
-			    }
+				mandatory: {
+					OfferToReceiveAudio: (options && options.audio),
+					OfferToReceiveVideo: (options && options.video)
+				}
 			},
-		/**
-		 * Default Settings
-		 * @type {Object}
-		 */
+			/**
+			 * Default Settings
+			 * @type {Object}
+			 */
 			SETTINGS = {
 				audio: false,
 				video: false,
 				data: true,
 				stream: undefined,
-				onMessage: function () {},
-				onRemoteStream: function () {}
+				onMessage: function() {},
+				onConnected: function() {},
+				onRemoteStream: function() {}
 			};
 
 		(function() {
@@ -117,28 +122,29 @@
 		 * Create PeerConnection instance
 		 * @param {Boolean} [isInitiator] Is the current peer the initiator?
 		 */
+
 		function connect() {
 			// 1. pc1 = new RTCPeerConnection
 			peerConnection = new RTCPeerConnection(servers, peerOptions);
-			
-			
+
+
 			console.log("===================================new peerConnection!!!! ", isInitiator, " -- to: ", guestid);
-			
+
 			if (SETTINGS.video && typeof SETTINGS.stream !== 'undefined') {
 				peerConnection.addStream(SETTINGS.stream);
 
 				console.debug(">>>>>>>Adding stream....... ", peerConnection.getLocalStreams()[0].id);
-				
 
-				peerConnection.onaddstream = function (e) {
+
+				peerConnection.onaddstream = function(e) {
 					console.log("Remote Stream added!!!!!!!!!", peerConnection.getRemoteStreams()[0].id);
 					if (typeof SETTINGS.onRemoteStream === 'function') {
 						SETTINGS.onRemoteStream(e.stream);
-					}	
-				}
+					}
+				};
 			}
 
-			peerConnection.onicecandidate = function (e) {
+			peerConnection.onicecandidate = function(e) {
 				if (e.candidate) {
 					send({
 						type: 'candidate',
@@ -149,25 +155,29 @@
 				} else {
 					console.warn("-------End of Candidates------ is Connected");
 					isConnected = true;
+					SETTINGS.onConnected();
 				}
-			}
+			};
 
-			peerConnection.onsignalingstatechange = function (e) {
-				//console.log("pc.onsignalingstatechange: ", e);
-			}
+			peerConnection.onsignalingstatechange = function(e) {
+				console.log("pc.onsignalingstatechange: ", e);
+			};
 
-			
-			peerConnection.ondatachannel = function (e) {
+
+			peerConnection.ondatachannel = function(e) {
 				console.log(">>>>>>listening data channel: ", e.channel);
 				channel = e.channel;
 				configureDataChannel();
-			}
+			};
 
 
 			if (isInitiator) {
 
 				if (SETTINGS.data) {
-					channel = peerConnection.createDataChannel('dataChannel', {reliable: false});
+					console.warn("-------- initiator wants to create a new DataChannel -------");
+					channel = peerConnection.createDataChannel('dataChannel', {
+						reliable: true
+					});
 					configureDataChannel();
 				}
 
@@ -178,6 +188,7 @@
 		/**
 		 * Creates an offer.. this would be used for the peer connection (guest/receiver), to join the room
 		 */
+
 		function create(to) {
 			console.warn("ppjs.RTC >> createOFFER >>> ", to);
 			// 2. pc1.createOffer
@@ -189,16 +200,17 @@
 		/**
 		 * Leaves the current connection
 		 */
+
 		function leave() {
 			isConnected = false;
 			signalingChannel.leave();
 			if (SETTINGS.data) {
-				channel.close();	
+				channel.close();
 			}
 			if (SETTINGS.video) {
 				peerConnection.removeStream();
 			}
-			
+
 		}
 
 		function onLeave() {
@@ -212,23 +224,24 @@
 		/**
 		 * Configure DataChannel to send arbitrary data
 		 */
+
 		function configureDataChannel() {
-			
-			channel.onmessage = function (e) {
-				console.log("message sent over RTC DataChannel> ", e.data);
-				if (typeof SETTINGS.onMessage === 'function') {
+
+			channel.onmessage = function(e) {
+				//console.log("message sent over RTC DataChannel> ", e.data);
+				if (isConnected && typeof SETTINGS.onMessage === 'function') {
 					SETTINGS.onMessage(e.data);
 				}
 			};
 
-			channel.onerror = function (e) {
+			channel.onerror = function(e) {
 				console.log("channel error: ", e);
 			};
-			
-			channel.onclose = function (e) {
+
+			channel.onclose = function(e) {
 				console.log("channel closed: ", e);
 			};
-			channel.onopen = function (e) {
+			channel.onopen = function(e) {
 				console.log("channel openned: ", e);
 			};
 		}
@@ -237,6 +250,7 @@
 		 * Sets the local description (initiator/sender) and sends the session description to the signaling channel (guest/receiver)
 		 * @param {[type]} sessionDescription [description]
 		 */
+
 		function setLocalAndSendMessage(sessionDescription, to) {
 			console.log("setLocalAndSendMessage: ", isInitiator, to);
 			// 3. pc1.setLocalDescription
@@ -251,6 +265,7 @@
 		 * The guest/receiver has accepted the invitation and notified to the initiator/sender
 		 * @param  {SessionDescription} message - The offer message
 		 */
+
 		function setOfferer(message) {
 			console.log("Connect PC1 in PC2 >>>>> createAnswer------- > ", message);
 			// 5. pc2.setRemoteDescription
@@ -263,6 +278,7 @@
 		 * The initiator/sender gets the remote description from guest/receiver
 		 * @param {[type]} message [description]
 		 */
+
 		function setAnswerer(message) {
 			console.log("Connect PC2 in PC1 <<<<<<< !!! set remote desc ", message);
 			// 9. pc1.setRemoteDescription
@@ -273,17 +289,23 @@
 		 * Send ICE candidates to the other peer (guest/receiver)
 		 * @param {[type]} message [description]
 		 */
+
 		function addCandidate(message) {
-			var candidate =  new RTCIceCandidate({sdpMLineIndex:message.label, candidate:message.candidate});
+			var candidate = new RTCIceCandidate({
+				sdpMLineIndex: message.label,
+				candidate: message.candidate
+			});
 			peerConnection.addIceCandidate(candidate);
 		}
 
 		function send(message) {
 			if (!isConnected) {
-				//console.log("Peer.send: ", message, id, guestid);
+				//	console.warn("Peer.send: ", message, id, guestid);
 				SETTINGS.onMessage(message, id, guestid);
 			} else {
-				channel.send(message);	
+				console.debug("CHANNEL.send: ", message, id, guestid);
+
+				channel.send(message);
 			}
 		}
 

@@ -15,7 +15,7 @@ window.RTCIceCandidate = window.RTCIceCandidate || window.mozRTCIceCandidate;
  */
 Object.extend = function(dest, source) {
 	for (var property in source) {
-  		dest[property] = source[property];
+		dest[property] = source[property];
 	}
     
 	return dest;

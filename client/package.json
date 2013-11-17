@@ -1,0 +1,31 @@
+{
+  "name": "ppjs",
+  "version": "1.0.0",
+  "author": "Juan David Andrade <juandavidandrade@gmail.com>",
+  "description": "PLPD",
+  "homepage": "https://github.com/jandrade/PingPongJS",
+  "keywords": [
+    "Website"
+  ],
+  "contributors": [
+    {
+      "name": "Juan Andrade",
+      "email": "juandavidandrade@gmail.com"
+    }
+  ],
+  "bugs": "https://github.com/jandrade/PingPongJS/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jandrade/PingPongJS.git"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-uglify": "~0.2.4",
+    "grunt-contrib-clean": "~0.5.0",
+    "grunt-contrib-jshint": "~0.6.4"
+  },
+  "bundledDependencies": [],
+  "license": "MIT"
+}

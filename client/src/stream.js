@@ -1,12 +1,12 @@
 /**
- * @fileOverview Manages the Real-Time Communication Abstraction Layer
+ * @fileOverview Manages the Real-Time Communication Stream Layer
  * @author Juan Andrade <juandavidandrade@gmail.com>
  */
 (function (ppjs) {
 	'use strict';
 
 	/**
-	 * Represents the Real-Time Communication Wrapper
+	 * Represents the Real-Time Communication Stream Wrapper
 	 * @constructor
 	 * @return {Object} Exposed methods
 	 */
@@ -23,7 +23,6 @@
 		 */
 			container,
 
-			peers = [],
 		/**
 		 * Default Settings
 		 * @type {Enum}

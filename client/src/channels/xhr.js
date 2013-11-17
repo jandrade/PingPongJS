@@ -3,9 +3,11 @@
  * @author Juan Andrade <juandavidandrade@gmail.com>
  */
 
-(function (ppjs) {
+/* global ActiveXObject:false, console:false */
+
+(function(ppjs) {
 	'use strict';
-	
+
 	/**
 	 * Represents a socket.io client wrapper
 	 * @constructor
@@ -19,52 +21,51 @@
 		 */
 		var signal,
 			socket,
-		/**
-		 * Current peer is the initiator?
-		 * @type {Boolean}
-		 */
+			/**
+			 * Current peer is the initiator?
+			 * @type {Boolean}
+			 */
 			isInitiator = false,
-		/**
-		 * Connection successfully stablished
-		 * @type {Boolean}
-		 */
+			/**
+			 * Connection successfully stablished
+			 * @type {Boolean}
+			 */
 			isConnected = false,
-		/**
-		 * Current peer is the initiator?
-		 * @type {Boolean}
-		 */
+			/**
+			 * Current peer is the initiator?
+			 * @type {Boolean}
+			 */
 			isChannelReady = false,
-		/**
-		 * Pin number
-		 * @type {Number}
-		 */
+			/**
+			 * Pin number
+			 * @type {Number}
+			 */
 			code,
-		/**
-		 * Room Identifier
-		 * @type {String}
-		 */
+			/**
+			 * Room Identifier
+			 * @type {String}
+			 */
 			room = 'test',
 
 			SETTINGS = {
 				url: 'http://172.16.3.157/rtdroid/php/',
-				onConnected: function () {},
-				onOffer: function () {},
-				onAnswer: function () {},
-				onCandidate: function () {},
-				onFailed: function () {},
-				onLeave: function () {}
+				onConnected: function() {},
+				onOffer: function() {},
+				onAnswer: function() {},
+				onCandidate: function() {},
+				onFailed: function() {},
+				onLeave: function() {}
 			};
 
 
 		/**
 		 * @construcs net.Client
 		 */
-		(function () {
+		(function() {
 			Object.extend(SETTINGS, options);
 
-			console.log("New XHR Signaling channel: ");
 			ajax(SETTINGS.url, function(data) {
-				console.log("XHR: ", data);
+				//console.log("XHR: ", data);
 			});
 			//addEventListeners();
 		}());
@@ -90,10 +91,10 @@
 			//	Mozilla, Webkit, etc
 			if (window.XMLHttpRequest) {
 				httpRequest = new XMLHttpRequest();
-			//	IE
+				//	IE
 			} else if (window.ActiveXObject) {
 				try {
-					httpRequest = new ActiveXObject('Msxml2.XMLHTTP');	
+					httpRequest = new ActiveXObject('Msxml2.XMLHTTP');
 				} catch (e) {
 					httpRequest = new ActiveXObject('Microsoft.XMLHTTP');
 				}
@@ -103,31 +104,31 @@
 				return false;
 			}
 
-			httpRequest.onreadystatechange = handleResponse;
-			console.log("ajax: ", httpRequest);
-			
-			httpRequest.open('GET', url, true);
-			httpRequest.send();
-
 			function handleResponse() {
-				
 				//httpRequest.setRequestHeader('Access-Control-Allow-Origin', '*');
 				console.log("Handle response: ", httpRequest);
 				if (httpRequest.readyState === 4) {
 					if (httpRequest.status === 200) {
-						if (typeof successFn  === 'function') {
+						if (typeof successFn === 'function') {
 							var response = JSON.parse(httpRequest.responseText);
 							successFn(response);
 						}
 					}
 				}
 			}
+
+			httpRequest.onreadystatechange = handleResponse;
+			console.log("ajax: ", httpRequest);
+
+			httpRequest.open('GET', url, true);
+			httpRequest.send();
 		}
 
 		/**
 		 * Start connection
 		 * @private
 		 */
+
 		function connect() {
 			if (!isConnected && isChannelReady) {
 				console.log("CONNECTION DONE!!!!!!!!!!");
@@ -143,24 +144,21 @@
 		 * Joins a room
 		 * @param  {Number} value - The room code
 		 */
+
 		function join(value) {
-			
+
 			if (typeof value !== 'undefined') {
 				code = value;
 			}
 			console.log('Joining ', room, " -- code: ", code);
 			return;
-			socket.emit('create or join', {
-				room: room, 
-				pin: code, 
-				username: SETTINGS.username
-			});
 		}
 
 		/**
 		 * Leave room
 		 * @param  {*} message - The message to be sent
 		 */
+
 		function leave() {
 			console.log("leaving channell.....");
 			isConnected = false;
@@ -171,6 +169,7 @@
 		 * Send messages to the server
 		 * @param  {*} message - The message to be sent
 		 */
+
 		function send(message) {
 			socket.emit('message', message);
 		}
@@ -180,6 +179,7 @@
 		 * @param  {String} room - The room ID
 		 * @event
 		 */
+
 		function socket_roomJoinHandler(data) {
 			isChannelReady = true;
 			connect();
@@ -190,14 +190,15 @@
 		 * @param  {String} room - The room ID
 		 * @event
 		 */
+
 		function socket_roomJoinedHandler(data) {
 			if (data.initiator) {
 				console.debug("Room created: ", data);
-				isInitiator = true;	
+				isInitiator = true;
 			} else {
-				isChannelReady = true;	
+				isChannelReady = true;
 			}
-			
+
 			connect();
 		}
 
@@ -206,6 +207,7 @@
 		 * @param  {String} room - The room ID
 		 * @event
 		 */
+
 		function socket_roomLeaveHandler(data) {
 			if (typeof SETTINGS.onLeave === 'function') {
 				SETTINGS.onLeave();
@@ -217,6 +219,7 @@
 		 * @param  {String} data - The room ID
 		 * @event
 		 */
+
 		function socket_failedHandler(data) {
 			console.log("Failed: You must enter a valid code!!!");
 			if (typeof SETTINGS.onFailed === 'function') {
@@ -229,6 +232,7 @@
 		 * @param  {String} room - The room ID
 		 * @event
 		 */
+
 		function socket_roomFullHandler(room) {
 			console.error("ROOM FULL");
 		}
@@ -238,23 +242,24 @@
 		 * Signaling messages between peers
 		 * @param  {*} message Message from peer
 		 */
+
 		function socket_messageHandler(message) {
 			//	peer 1 is sending an offer
 			if (message.type === 'offer') {
 				if (typeof SETTINGS.onOffer === 'function') {
 					SETTINGS.onOffer(message);
 				}
-			//	peer 2 is sending his answer
+				//	peer 2 is sending his answer
 			} else if (message.type === 'answer' && isConnected) {
 				if (typeof SETTINGS.onAnswer === 'function') {
 					SETTINGS.onAnswer(message);
 				}
-			//	peers are exchanging candidates	
+				//	peers are exchanging candidates	
 			} else if (message.type === 'candidate' && isConnected) {
 				if (typeof SETTINGS.onCandidate === 'function') {
 					SETTINGS.onCandidate(message);
 				}
-			//	peers are sending arbitrary messages
+				//	peers are sending arbitrary messages
 			} else {
 				if (typeof SETTINGS.onMessage === 'function') {
 					SETTINGS.onMessage(message);
@@ -266,11 +271,12 @@
 		 * Logging system
 		 * @param  {Array} array - Log arguments
 		 */
+
 		function socket_logHandler(array) {
 			console.log.apply(console, array);
 		}
 
-		
+
 		//	public methods and properties
 		return {
 			join: join,

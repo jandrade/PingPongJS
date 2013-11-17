@@ -3,9 +3,11 @@
  * @author Juan Andrade <juandavidandrade@gmail.com>
  */
 
-(function (ppjs) {
+/* global io:false, console:false */
+
+(function(ppjs) {
 	'use strict';
-	
+
 	/**
 	 * Represents a socket.io client wrapper
 	 * @constructor
@@ -18,61 +20,62 @@
 		 * @type {io.socket}
 		 */
 		var socket,
-		/**
-		 * Client ID
-		 * @type {String}
-		 */
+			/**
+			 * Client ID
+			 * @type {String}
+			 */
 			id,
-		/**
-		 * Current peer is the initiator?
-		 * @type {Boolean}
-		 */
+			/**
+			 * Current peer is the initiator?
+			 * @type {Boolean}
+			 */
 			isInitiator = false,
-		/**
-		 * Connection successfully stablished
-		 * @type {Boolean}
-		 */
+			/**
+			 * Connection successfully stablished
+			 * @type {Boolean}
+			 */
 			isConnected = false,
-		/**
-		 * Current peer is the initiator?
-		 * @type {Boolean}
-		 */
+			/**
+			 * Current peer is the initiator?
+			 * @type {Boolean}
+			 */
 			isChannelReady = false,
 
 			isServerConnected = false,
-		/**
-		 * Pin number
-		 * @type {Number}
-		 */
+			/**
+			 * Pin number
+			 * @type {Number}
+			 */
 			code,
-		/**
-		 * Room Identifier
-		 * @type {String}
-		 */
+			/**
+			 * Room Identifier
+			 * @type {String}
+			 */
 			room = 'test',
 
 			SETTINGS = {
-				//url: 'http://172.16.3.157:8889/',
-				url: 'http://rtdroid.herokuapp.com/',
-				onConnected: function () {},
-				onOffer: function () {},
-				onAnswer: function () {},
-				onCandidate: function () {},
-				onFailed: function () {},
-				onLeave: function () {},
-				onServerConnection: function () {}
+				url: 'http://192.168.0.15:8889/',
+			//	url: 'http://172.16.3.157:8889/',
+			//	url: 'http://rtdroid.herokuapp.com/',
+				onConnected: function() {},
+				onOffer: function() {},
+				onAnswer: function() {},
+				onCandidate: function() {},
+				onFailed: function() {},
+				onLeave: function() {},
+				onServerConnection: function() {}
 			};
 
 
 		/**
 		 * @construcs net.Client
 		 */
-		(function () {
+		(function() {
 			Object.extend(SETTINGS, options);
 
 			socket = io.connect(SETTINGS.url);
 			socket.on('connect', io_connectionHandler);
-			
+
 		}());
 
 		function io_connectionHandler() {
@@ -99,9 +102,10 @@
 		 * Start connection
 		 * @private
 		 */
+
 		function connect(connections) {
 			if (!isConnected && isChannelReady) {
-				console.log("CONNECTION DONE!!!!!!!!!! ", id, " -- with: ", connections);
+				//console.log("CONNECTION DONE!!!!!!!!!! ", id, " -- with: ", connections);
 				isConnected = true;
 				if (typeof SETTINGS.onConnected === 'function') {
 					SETTINGS.onConnected(isInitiator, id, connections);
@@ -113,6 +117,7 @@
 		 * Joins a room
 		 * @param  {Number} value - The room code
 		 */
+
 		function join(value) {
 			isConnected = false;
 			if (typeof value !== 'undefined') {
@@ -121,8 +126,8 @@
 			console.log('server connected?? ', isServerConnected, ' -- Joining ', room, " -- code: ", code);
 
 			socket.emit('create or join', {
-				room: room, 
-				pin: code, 
+				room: room,
+				pin: code,
 				username: SETTINGS.username
 			});
 		}
@@ -131,6 +136,7 @@
 		 * Leave room
 		 * @param  {*} message - The message to be sent
 		 */
+
 		function leave() {
 			console.log("leaving channell.....");
 			isConnected = false;
@@ -141,6 +147,7 @@
 		 * Send messages to the server
 		 * @param  {*} message - The message to be sent
 		 */
+
 		function send(message, from, to) {
 			socket.emit('message', message, from, to);
 		}
@@ -150,6 +157,7 @@
 		 * @param  {String} room - The room ID
 		 * @event
 		 */
+
 		function socket_roomJoinHandler(data) {
 			isChannelReady = true;
 			isConnected = false;
@@ -163,16 +171,17 @@
 		 * @param  {String} room - The room ID
 		 * @event
 		 */
+
 		function socket_roomJoinedHandler(data) {
 			if (data.initiator) {
 				console.debug("Room created: ", data);
-				isInitiator = true;	
+				isInitiator = true;
 			} else {
-				isChannelReady = true;	
+				isChannelReady = true;
 			}
 			console.debug("----------Room joined: ", data);
 			id = data.clientid;
-				
+
 			connect(data.connections);
 		}
 
@@ -181,6 +190,7 @@
 		 * @param  {String} room - The room ID
 		 * @event
 		 */
+
 		function socket_roomLeaveHandler(data) {
 			if (typeof SETTINGS.onLeave === 'function') {
 				SETTINGS.onLeave();
@@ -192,6 +202,7 @@
 		 * @param  {String} data - The room ID
 		 * @event
 		 */
+
 		function socket_failedHandler(data) {
 			console.log("Failed: You must enter a valid code!!!");
 			if (typeof SETTINGS.onFailed === 'function') {
@@ -204,6 +215,7 @@
 		 * @param  {String} room - The room ID
 		 * @event
 		 */
+
 		function socket_roomFullHandler(room) {
 			console.error("ROOM FULL");
 		}
@@ -213,6 +225,7 @@
 		 * Signaling messages between peers
 		 * @param  {*} message Message from peer
 		 */
+
 		function socket_messageHandler(message, from, to) {
 			//	peer 1 is sending an offer
 			if (message.type === 'offer') {
@@ -220,18 +233,19 @@
 				if (typeof SETTINGS.onOffer === 'function') {
 					SETTINGS.onOffer(message, from, to);
 				}
-			//	peer 2 is sending his answer
+				//	peer 2 is sending his answer
 			} else if (message.type === 'answer' && isConnected) {
 				if (typeof SETTINGS.onAnswer === 'function') {
 					SETTINGS.onAnswer(message, from, to);
 				}
-			//	peers are exchanging candidates	
+				//	peers are exchanging candidates	
 			} else if (message.type === 'candidate' && isConnected) {
 				if (typeof SETTINGS.onCandidate === 'function') {
 					SETTINGS.onCandidate(message, from, to);
 				}
-			//	peers are sending arbitrary messages
-			} /*else {
+				//	peers are sending arbitrary messages
+			}
+			/*else {
 				if (typeof SETTINGS.onMessage === 'function') {
 					SETTINGS.onMessage(message);
 				}
@@ -242,11 +256,12 @@
 		 * Logging system
 		 * @param  {Array} array - Log arguments
 		 */
+
 		function socket_logHandler(array) {
 			console.log.apply(console, array);
 		}
 
-		
+
 		//	public methods and properties
 		return {
 			join: join,
