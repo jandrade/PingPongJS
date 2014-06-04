@@ -3,6 +3,8 @@
  * @author Juan Andrade <juandavidandrade@gmail.com>
  */
 
+/* global console:false */
+
 (function(ppjs) {
 	'use strict';
 
@@ -27,11 +29,6 @@
 			 * @type {RTCDataChannel}
 			 */
 			channel,
-			/**
-			 * RTC connection
-			 * @type {RTCPeerConnection}
-			 */
-			signalingChannel,
 			/**
 			 * Peer connection completed
 			 * @type {Boolean}
@@ -128,16 +125,16 @@
 			peerConnection = new RTCPeerConnection(servers, peerOptions);
 
 
-			console.log("===================================new peerConnection!!!! ", isInitiator, " -- to: ", guestid);
+			console.log(Date.now(), "===================================new peerConnection!!!! ", isInitiator, " -- to: ", guestid);
 
 			if (SETTINGS.video && typeof SETTINGS.stream !== 'undefined') {
 				peerConnection.addStream(SETTINGS.stream);
 
-				console.debug(">>>>>>>Adding stream....... ", peerConnection.getLocalStreams()[0].id);
+				console.debug(Date.now(), ">>>>>>>Adding stream....... ", peerConnection.getLocalStreams()[0].id);
 
 
 				peerConnection.onaddstream = function(e) {
-					console.log("Remote Stream added!!!!!!!!!", peerConnection.getRemoteStreams()[0].id);
+					console.log(Date.now(), "Remote Stream added!!!!!!!!!", peerConnection.getRemoteStreams()[0].id);
 					if (typeof SETTINGS.onRemoteStream === 'function') {
 						SETTINGS.onRemoteStream(e.stream);
 					}
@@ -153,19 +150,23 @@
 						candidate: e.candidate.candidate
 					});
 				} else {
-					console.warn("-------End of Candidates------ is Connected");
+					console.warn(Date.now(), "-------End of Candidates------ is Connected");
 					isConnected = true;
-					SETTINGS.onConnected();
+					SETTINGS.onConnected(guestid);
 				}
 			};
 
 			peerConnection.onsignalingstatechange = function(e) {
-				console.log("pc.onsignalingstatechange: ", e);
+				console.log(Date.now(), "pc.onsignalingstatechange: ", e);
+			};
+
+			peerConnection.onnegotiationneeded = function() {
+				console.debug(Date.now(), "pc.onnegotiationneeded! ");
 			};
 
 
 			peerConnection.ondatachannel = function(e) {
-				console.log(">>>>>>listening data channel: ", e.channel);
+				console.log(Date.now(), ">>>>>>listening data channel: ", e.channel);
 				channel = e.channel;
 				configureDataChannel();
 			};
@@ -174,7 +175,7 @@
 			if (isInitiator) {
 
 				if (SETTINGS.data) {
-					console.warn("-------- initiator wants to create a new DataChannel -------");
+					console.warn(Date.now(), "-------- initiator wants to create a new DataChannel -------");
 					channel = peerConnection.createDataChannel('dataChannel', {
 						reliable: true
 					});
@@ -190,7 +191,7 @@
 		 */
 
 		function create(to) {
-			console.warn("ppjs.RTC >> createOFFER >>> ", to);
+			console.warn(Date.now(), "ppjs.RTC >> createOFFER >>> ", to);
 			// 2. pc1.createOffer
 			peerConnection.createOffer(function(sessionDescription) {
 				setLocalAndSendMessage(sessionDescription, to);
@@ -202,15 +203,16 @@
 		 */
 
 		function leave() {
+			console.log("peerConnection: ", channel);
 			isConnected = false;
-			signalingChannel.leave();
 			if (SETTINGS.data) {
 				channel.close();
 			}
 			if (SETTINGS.video) {
 				peerConnection.removeStream();
 			}
-
+			peerConnection.close();
+			console.log("closed!!!! ", id, peerConnection);
 		}
 
 		function onLeave() {
@@ -235,14 +237,14 @@
 			};
 
 			channel.onerror = function(e) {
-				console.log("channel error: ", e);
+				console.log(Date.now(), "channel error: ", e);
 			};
 
 			channel.onclose = function(e) {
-				console.log("channel closed: ", e);
+				console.log(Date.now(), "channel closed: ", e);
 			};
 			channel.onopen = function(e) {
-				console.log("channel openned: ", e);
+				console.log(Date.now(), "channel openned: ", e);
 			};
 		}
 
@@ -252,7 +254,7 @@
 		 */
 
 		function setLocalAndSendMessage(sessionDescription, to) {
-			console.log("setLocalAndSendMessage: ", isInitiator, to);
+			console.log(Date.now(), "setLocalAndSendMessage: ", isInitiator, to);
 			// 3. pc1.setLocalDescription
 			// 7. pc2.setLocalDescription
 			peerConnection.setLocalDescription(sessionDescription);
@@ -267,7 +269,7 @@
 		 */
 
 		function setOfferer(message) {
-			console.log("Connect PC1 in PC2 >>>>> createAnswer------- > ", message);
+			console.log(Date.now(), "Connect PC1 in PC2 >>>>> createAnswer------- > ", message);
 			// 5. pc2.setRemoteDescription
 			peerConnection.setRemoteDescription(new RTCSessionDescription(message));
 			// 6. pc2.createAnswer
@@ -280,7 +282,7 @@
 		 */
 
 		function setAnswerer(message) {
-			console.log("Connect PC2 in PC1 <<<<<<< !!! set remote desc ", message);
+			console.log(Date.now(), "Connect PC2 in PC1 <<<<<<< !!! set remote desc ", message);
 			// 9. pc1.setRemoteDescription
 			peerConnection.setRemoteDescription(new RTCSessionDescription(message));
 		}
@@ -310,6 +312,7 @@
 		}
 
 		return {
+			leave: leave,
 			send: send,
 			setOfferer: setOfferer,
 			setAnswerer: setAnswerer,

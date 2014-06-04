@@ -58,6 +58,8 @@
 		 */
 		(function() {
 			Object.extend(SETTINGS, options);
+
+			window.c = connections;
 			console.debug("////////// new signalingChannel /////////");
 			signalingChannel = new ppjs[SETTINGS.channel]({
 				onConnected: buildConnection,
@@ -95,10 +97,14 @@
 					onMessage: onMessage,
 					onConnected: onConnected
 				});
+
+				connections[newConn[i]].connected = false;
 			}
 		}
 
-		function onConnected() {
+		function onConnected(connectionID) {
+			console.log("On Connected!!! ", connectionID, connections[connectionID].connected);
+			connections[connectionID].connected = true;
 			isConnected = true;
 			SETTINGS.onConnected();
 		}
@@ -153,7 +159,16 @@
 		}
 
 		function leave() {
-			console.log("RTC.LEAVE!!!!!");
+			var key;
+
+			for (key in connections) {
+				console.log("connections: ", connections);
+				if (typeof connections[key] !== 'undefined') {
+					console.log("leaving: ", key, connections[key]);
+					connections[key].leave();	
+				}
+				
+			}
 		}
 
 
@@ -164,7 +179,8 @@
 		 */
 
 		function onMessage(message, from, to) {
-			if (!isConnected) {
+			console.log("On Message!!!! ", connections, from, to);
+			if (from && to && !connections[to].connected) {
 				signalingChannel.send(message, from, to);
 			} else {
 				SETTINGS.onMessage(message);

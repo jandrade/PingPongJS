@@ -54,8 +54,8 @@
 			room = 'test',
 
 			SETTINGS = {
-				url: 'http://192.168.0.15:8889/',
-			//	url: 'http://172.16.3.157:8889/',
+			//	url: 'http://192.168.0.15:8889/',
+				url: 'http://172.16.3.157:8889/',
 			//	url: 'http://rtdroid.herokuapp.com/',
 				onConnected: function() {},
 				onOffer: function() {},
@@ -105,7 +105,7 @@
 
 		function connect(connections) {
 			if (!isConnected && isChannelReady) {
-				//console.log("CONNECTION DONE!!!!!!!!!! ", id, " -- with: ", connections);
+				console.log("CONNECTION DONE!!!!!!!!!! ", id, " -- with: ", connections);
 				isConnected = true;
 				if (typeof SETTINGS.onConnected === 'function') {
 					SETTINGS.onConnected(isInitiator, id, connections);
@@ -227,6 +227,7 @@
 		 */
 
 		function socket_messageHandler(message, from, to) {
+			console.log(">>>> ", Date.now(), " socketMSG: ", message, from, to);
 			//	peer 1 is sending an offer
 			if (message.type === 'offer') {
 				console.log("Offer received!!!! ", from, to);
